@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const { succes , errors } = require('../helpers/respones')
 
-exports.getStudents = async (req, res) => {
+exports.getStudents = async (req, res , next ) => {
     try {
 
         const page = req.body.page || 1
@@ -20,12 +20,11 @@ exports.getStudents = async (req, res) => {
        succes(res ,  { data , page , totalPage :Math.ceil(total / limit) , total }  , "Student data get")
         
     } catch (error) {
-        console.log(error)
-        errors(res , "Failed fatch data")
+            next(error)
     }
 }
 
-exports.createStudents = async (req,res) => {
+exports.createStudents = async (req, res , next) => {
     try {
 
         const {name , email , age , marks } = req.body
@@ -48,15 +47,13 @@ exports.createStudents = async (req,res) => {
        succes(res , { studentId } , "Student create succesfully")
         
     } catch (error) {
-        console.log(error)
-        errors(res, "Somting wrong creating student")
+        next(error)
     }
 }
 
-exports.getStudentsById = async (req, res) => {
+exports.getStudentsById = async (req, res, next) => {
     try {
-
-        const student_id = req.params.id
+        const student_id = req.query.id
         const data = await db.query(`
           select s."name" as name , s.email as email , s.age as age ,json_agg(json_build_object(
           'subject' , m.subject , 'scor' , m.score)) from sms.students s 
@@ -66,15 +63,17 @@ exports.getStudentsById = async (req, res) => {
              bind : [student_id],
              type: db.QueryTypes.SELECT,
         });
+
+        if(!data.length){
+            return errors(res , "Student not found")
+        }
        succes(res ,  data  , "Student get succesfully")
-        
     } catch (error) {
-        console.log(error)
-        errors(res , "Failed get student data")
+            next(error)
     }
 }
 
-exports.updateStudentsData = async (req, res) => {
+exports.updateStudentsData = async (req, res , next) => {
     try {
 
        const { name , email , age ,  student_id} =  req.body;
@@ -85,15 +84,13 @@ exports.updateStudentsData = async (req, res) => {
        succes(res ,  null  , "Student Data update succesfully")
         
     } catch (error) {
-        console.log(error)
-        errors(res , "Failed to update student data")
+        next(error)
     }
 }
 
-exports.deletStudent = async (req , res) =>{
+exports.deletStudent = async (req , res , next) =>{
     try {
-        
-        const student_id = req.params.id;
+        const student_id = req.query.id;
          const deletMarks = await db.query("delete from sms.marks where student_id = $1 ;", { 
             bind: [ student_id],
             type : db.QueryTypes.DELETE
@@ -106,7 +103,6 @@ exports.deletStudent = async (req , res) =>{
         succes(res , null , "Student Deleted")
 
     } catch (error) {
-        console.log(error)
-        errors(res,"Failed Delete student")
+            next(error)
     }
 }
