@@ -3,7 +3,6 @@ const { succes , errors } = require('../helpers/respones')
 
 exports.getStudents = async (req, res , next ) => {
     try {
-
         const page = req.body.page || 1
         const limit = req.body.limit || 5
         const offset = (page - 1) * limit;
@@ -53,6 +52,7 @@ exports.createStudents = async (req, res , next) => {
 
 exports.getStudentsById = async (req, res, next) => {
     try {
+
         const student_id = req.query.id
         const data = await db.query(`
           select s."name" as name , s.email as email , s.age as age ,json_agg(json_build_object(
@@ -103,6 +103,6 @@ exports.deletStudent = async (req , res , next) =>{
         succes(res , null , "Student Deleted")
 
     } catch (error) {
-            next(error)
+        next(error)
     }
 }
